@@ -1,0 +1,18 @@
+package simulation.projectile;
+
+public class WeaponProfile {
+	public static final WeaponProfile DEFAULT = new WeaponProfile(5, new float[] {ZDepth.SUB_SYSTEM.depth());
+	
+	private int fireInterval;
+	
+	private final float[] zDepths;
+	
+	private WeaponProfile(int fireInterval, float[] zDepths) {
+		this.fireInterval = fireInterval;
+		this.zDepths = zDepths;
+	}
+	
+	public int getFireInterval() {
+		return fireInterval;
+	}
+}

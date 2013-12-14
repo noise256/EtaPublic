@@ -1,0 +1,102 @@
+package simulation.projectile;
+
+import java.nio.FloatBuffer;
+import java.util.ArrayList;
+
+import javax.media.opengl.GL3bc;
+
+import renderer.objdata.OBJData;
+import renderer.scene.VBOSceneNode;
+import renderer.shader.ShaderProgram;
+import renderer.vbo.VBOManager;
+import simulation.enums.ZDepth;
+import simulation.object.GameObject;
+import simulation.object.PhysicalProfile;
+import simulation.ships.Ship;
+import util.collision.Shape;
+import util.math.MathBox;
+import util.timer.TimerManager;
+
+public class Weapon extends GameObject {
+	private WeaponProfile weaponProfile;
+	private ProjectileProfile projectileProfile;
+	
+	private float[] rotation;
+	
+	private float arcStart;
+	
+	private ArrayList<Projectile> projectiles = new ArrayList<Projectile>();
+	
+	private int lastFireTime;
+
+	public Weapon(GameObject parent, float[] position, float[] rotation, float arcStart, WeaponProfile weaponProfile, ProjectileProfile projectileProfile) {
+		super(parent, position, weaponProfile.getZDepths(), weaponProfile.getDiameter(), weaponProfile.getTexturePaths(), weaponProfile.getTextureLengths());
+		
+		this.rotation = rotation;
+		this.arcStart = arcStart;
+		this.weaponProfile = weaponProfile;
+		this.projectileProfile = projectileProfile;
+	}
+
+	public void fire(float[] targetPosition) {
+		//TODO determine if it is possible to hit targetPosition given weapon position, targetPosition, arcStart, arcLength and weaponRange
+		int currentTime = TimerManager.getTimer("mainTimer").getTime();
+		
+		if (currentTime >= lastFireTime + weaponProfile.getFireInterval()) {
+			float[] velocity = MathBox.addVectors(((Ship) parent).getVelocity(), MathBox.scalarVector(MathBox.normaliseVector(((Ship) parent).getRotation()), projectileProfile.getMuzzleVelocity()));
+			projectiles.add(new Projectile(parent.getPosition(), velocity, ((Ship) parent).getRotation(), PhysicalProfile.DEFAULT, projectileProfile, (int) (weaponProfile.getWeaponRange() / projectileProfile.getMuzzleVelocity())));
+		}
+	}
+	
+	public ArrayList<Projectile> getProjectiles() {
+		return projectiles;
+	}
+
+	@Override
+	public ArrayList<String> getUIStrings() {
+		return null;
+	}
+
+	@Override
+	public void updateView() {
+		if (sceneNodes.isEmpty()) {
+			ShaderProgram shaderProgram = new ShaderProgram(
+					"defaultTextured", 
+					"textured.vertex", 
+					"textured.fragment", 
+					new String[] {"attribute_Position", "attribute_TexCoord"}
+			);
+			
+			for (int i = 0; i < texturePaths.length; i++) {
+				FloatBuffer vertexBuffer = VBOManager.getFloatBuffer("DefaultTexturedQuad");
+				OBJData objData = new OBJData(vertexBuffer, texturePaths[i], new float[] {textureLengths[i]/2, textureLengths[i]/2, 1.0f}, 2, 5, new int[] {3, 2}, new int[] {0, 3}, false, true);
+				VBOSceneNode weaponSceneNode = new VBOSceneNode(shaderProgram, objData, getPosition(), 0.0f, zDepths[i], GL3bc.GL_TRIANGLES);
+				weaponSceneNode.setVisible(true);
+				sceneNodes.put(this + texturePaths[i] + "WeaponSceneNode", weaponSceneNode);
+			}
+			
+			FloatBuffer selectionBuffer = VBOManager.getFloatBuffer("DefaultTexturedQuad");			
+			OBJData selectionObjData = new OBJData(selectionBuffer, "selection_ring_green.png", new float[] {diameter * 0.75f, diameter * 0.75f, 1.0f}, 2, 5, new int[] {3, 2}, new int[] {0, 3}, false, true);
+
+			sceneNodes.put("Selection" + "_WeaponSceneNode", new VBOSceneNode(shaderProgram, selectionObjData, getPosition(), 0.0f, ZDepth.SELECTION.getDepth(), GL3bc.GL_TRIANGLES));
+
+			FloatBuffer arcBuffer = VBOManager.getFloatBuffer("DefaultTexturedQuad");			
+			OBJData arcObjData = new OBJData(arcBuffer, "shit_arc.png", new float[] {2 * MathBox.sin(weaponProfile.getArcLength()/2) * 180/MathBox.PI, weaponProfile.getWeaponRange(), 1.0f}, 2, 5, new int[] {3, 2}, new int[] {0, 3}, false, true);
+			
+			float[] arcNodePosition =  MathBox.addVectors(getPosition(), MathBox.scalarVector(MathBox.normaliseVector(rotation), weaponProfile.getWeaponRange()));
+			VBOSceneNode arcSceneNode = new VBOSceneNode(shaderProgram, arcObjData, arcNodePosition, MathBox.atan2(rotation[1], rotation[0]), ZDepth.SUB_SYSTEM.getDepth(), GL3bc.GL_TRIANGLES);
+			arcSceneNode.setVisible(true);
+			sceneNodes.put("Arc" + "_WeaponSceneNode", arcSceneNode);
+			
+//			FloatBuffer planBuffer = VBOManager.getFloatBuffer("DefaultTexturedQuad");
+//			
+//			OBJData plannedObjData = new OBJData(planBuffer, texturePaths[0], new float[] {textureLengths[0]/2, textureLengths[0]/2, 1.0f}, 2, 5, new int[] {3, 2}, new int[] {0, 3}, false, true);
+//			sceneNodes.put("Plan" + "_ShipSceneNode", new VBOSceneNode(shaderProgram, plannedObjData, plannedDestination, 0.0f, ZDepth.TRADE_SHIP.getDepth(), GL3bc.GL_TRIANGLES));
+		}
+	}
+
+	@Override
+	public Shape getBounds() {
+		return null;
+	}
+}

@@ -1,0 +1,27 @@
+package simulation.projectile;
+
+import simulation.enums.ZDepth;
+import util.math.MathBox;
+
+public class WeaponProfile {
+	public static final WeaponProfile DEFAULT = new WeaponProfile(new float[] {ZDepth.SUB_SYSTEM.getDepth()}, 5, MathBox.PI/4);
+		
+	private final float[] zDepths;
+	
+	private final int fireInterval;
+	private final float arcLength;
+	
+	private WeaponProfile(float[] zDepths, int fireInterval, float arcLength) {
+		this.zDepths = zDepths;
+		this.fireInterval = fireInterval;
+		this.arcLength = arcLength;
+	}
+	
+	public int getFireInterval() {
+		return fireInterval;
+	}
+	
+	public float[] getZDepths() {
+		return zDepths;
+	}
+}

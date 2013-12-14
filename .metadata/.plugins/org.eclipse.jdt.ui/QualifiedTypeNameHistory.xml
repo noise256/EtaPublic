@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<qualifiedTypeNameHistroy>
+<fullyQualifiedTypeName name="simulation.object.GameObject"/>
+<fullyQualifiedTypeName name="simulation.enums.ZDepth"/>
+<fullyQualifiedTypeName name="util.math.MathBox"/>
+<fullyQualifiedTypeName name="java.lang.Math"/>
+<fullyQualifiedTypeName name="java.util.ConcurrentModificationException"/>
+<fullyQualifiedTypeName name="simulation.projectile.Weapon"/>
+</qualifiedTypeNameHistroy>
